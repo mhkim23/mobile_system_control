@@ -99,3 +99,15 @@ plt.ylabel('Y Coordinate')
 plt.title('Shortest Path on Road Boundaries')
 plt.legend()
 plt.show()
+
+# 최단 경로를 DataFrame으로 변환
+shortest_path_df = pd.DataFrame({
+    'x': x_shortest,
+    'y': y_shortest,
+    'z': [0] * len(x_shortest)  # z 값을 0으로 설정 (기본값)
+})
+
+# 저장 경로 설정 (원본과 동일한 형식)
+output_path = '/mnt/data/mobile_system_control/pathfinder/shortest_path.csv'
+shortest_path_df.to_csv(output_path, sep='\t', index=False, header=True)
+print(f"최단 경로가 {output_path}에 저장되었습니다.")
