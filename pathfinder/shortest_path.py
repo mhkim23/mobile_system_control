@@ -19,7 +19,7 @@ road_width = 8  # 도로 폭
 offset = road_width / 2  # 도로 중심으로부터 양쪽 경계까지의 거리
 
 # 차량 폭 고려 - 도로 유효 폭 조정
-vehicle_width = 2  # 차량 폭 (1.2m)
+vehicle_width = 6  # 차량 폭 (1.2m)
 usable_road_width = road_width - vehicle_width  # 차량 폭을 고려한 유효 도로 폭
 adjusted_offset = usable_road_width / 2  # 유효 도로 중심으로부터 경계까지의 거리
 
@@ -35,7 +35,7 @@ right_x_coords = x_coords + adjusted_offset * (dy / magnitude)
 right_y_coords = y_coords - adjusted_offset * (dx / magnitude)
 
 # 트랙을 여러 개의 섹션으로 나누기
-num_sections = 100  # 섹션 개수 설정
+num_sections = 500  # 섹션 개수 설정
 section_indices = np.linspace(0, len(x_coords) - 1, num_sections, dtype=int)
 
 # 각 섹션에서 alpha 값을 변화시키며 후보 점 생성
@@ -92,6 +92,8 @@ y_shortest = [candidate_points[i][j][1] for i, j in shortest_path]
 fig = plt.figure(figsize=(10, 6))
 plt.plot(x_coords, y_coords, label='Road Centerline', color='blue')
 plt.scatter(x_shortest, y_shortest, label='Shortest Path', color='red', s=10)
+plt.plot(x_coords - 3.4 * (dy / magnitude), y_coords + 3.4 * (dx / magnitude), label='Real Boundary', color='black')
+plt.plot(x_coords + 3.4 * (dy / magnitude), y_coords - 3.4 * (dx / magnitude), color='black')
 plt.plot(left_x_coords, left_y_coords, label='Left Road Boundary', color='green')
 plt.plot(right_x_coords, right_y_coords, label='Right Road Boundary', color='orange')
 plt.xlabel('X Coordinate')
