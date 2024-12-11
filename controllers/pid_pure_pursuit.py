@@ -8,13 +8,15 @@ from geometry_msgs.msg import Vector3Stamped
 class Controller(object):
     def __init__(self,ref_path):
         self.ref=pd.read_csv(ref_path, header=None).values
-        self.max_steer_angle=np.deg2rad(20.0) 
+        self.max_steer_angle=np.deg2rad(30.0) 
         self.wheelbase = 1.023
         self.target_speed = 20.0/3.6
-        self.look_ahead_dist = 4
+        ##========================##
+        self.look_ahead_dist = 10
         self.kp = 1.5
         self.kd = 0.3
         self.ki = 0.03
+        ##========================##
         self.error_sum = 0
         self.error_prev =0
         self.dt = 0.1 
@@ -26,10 +28,41 @@ class Controller(object):
         self.speed = speed
         self.steering_angle = steering_angle
         
+    # def control(self):
+    #     steer = self.control_steer()
+    #     throttle = self.control_speed()
+    #     brake =0
+        
+    #     if throttle < 0:
+    #         brake = -throttle
+    #         throttle = 0
+            
+    #     steer = np.clip(steer, -self.max_steer_angle, self.max_steer_angle)
+    #     throttle = np.clip(throttle, 0, 1)
+    #     brake = np.clip(brake, 0, 1)
+        
+    #     return throttle, steer, brake
+    
     def control(self):
+    # 현재 경로 인덱스 확인
+        nearest_idx = np.argmin(np.hypot(self.x - self.ref[:,0], self.y - self.ref[:,1]))
+    
+    # 특정 인덱스 구간에 따라 파라미터 조정
+        if 0 <= nearest_idx < 50:  # 구간 1: 예시로 첫 50개 지점
+            self.look_ahead_dist = 10
+            self.kp = 1.5
+            self.kd = 0.3
+            self.ki = 0.03
+        elif 50 <= nearest_idx < 100:  # 구간 2: 50번부터 100번 지점
+            self.look_ahead_dist = 10
+            self.kp = 1.5
+            self.kd = 0.3
+            self.ki = 0.03
+
+        # 제어 계산
         steer = self.control_steer()
         throttle = self.control_speed()
-        brake =0
+        brake = 0
         
         if throttle < 0:
             brake = -throttle
@@ -40,6 +73,7 @@ class Controller(object):
         brake = np.clip(brake, 0, 1)
         
         return throttle, steer, brake
+
         
     def control_speed(self):
         error = self.speed - self.target_speed
@@ -61,6 +95,9 @@ class Controller(object):
         x,y = np.matmul(rotation_matrix, look_ahead_point)
             
         steer =-(1/self.max_steer_angle)*np.arctan2(2*self.wheelbase*y, x*x+y*y)
+        rospy.loginfo("look ahead index:%s", look_ahead_idx)
+        rospy.loginfo("look ahead point:%s", look_ahead_point)
+        
         
         return steer
         
@@ -78,16 +115,15 @@ def vehicle_data_callback(data):
     
     control_publisher.publish(control_msg)
             
-    rospy.loginfo("Pubishing Vector3Stamped data:throttle=%s, steer=%s, brake=%s", 
-                  control_msg.vector.x, control_msg.vector.y, control_msg.vector.z)
-        
+    # rospy.loginfo("Pubishing Vector3Stamped data:throttle=%s, steer=%s, brake=%s", 
+                #   control_msg.vector.x, control_msg.vector.y, control_msg.vector.z)
 def main():
     global controller, control_publisher
         
     rospy.init_node('carla_vehicle_control')
     print("hello")
     
-    ref_path = '/home/yumi/catkin_ws/src/my_msc_package/src/reference_path.csv'
+    ref_path = '/home/yumi/catkin_ws/src/my_msc_package/src/densified_shortest_path.csv'
     controller = Controller(ref_path)
         
     rospy.Subscriber('/mobile_system_control/ego_vehicle',Float32MultiArray, vehicle_data_callback)
@@ -98,3 +134,4 @@ def main():
         
 if __name__=='__main__':
     main()
+    
